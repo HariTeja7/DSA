@@ -1,69 +1,192 @@
 package com.dsa.graph;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 
-public class GraphAdjMatrix {
+public class GraphAdjMatrix extends Graph {
 
-	static int n = 6;
+	private int[][] adjMatrix;
 
-	static int[][] graph = new int[n][n];
+	public GraphAdjMatrix(int noOfVertices) {
+		super(noOfVertices);
+		adjMatrix = new int[noOfVertices][noOfVertices];
+	}
 
-	public static void main(String[] args) {
-
-		int[][] input = new int[][] {
-		    {0, 1}, {0, 2},        // Node 0 connects to 1 and 2
-		    {1, 3},                // Node 1 connects to 3
-		    {2, 4},                // Node 2 connects to 4
-		    {3, 5},                // Node 3 connects to 5
-		    {4, 5}                 // Node 4 connects to 5
-		};
-		
-		for (int[] i : input) {
-			graph[i[0]][i[1]] = 1;
+	@Override
+	public void print() {
+		System.out.print("\s\s\s\s\s");
+		for (int i = 0; i < noOfVertices; i++) {
+			System.out.printf("%3d", i);
 		}
-
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				System.out.printf(" %3d ", graph[i][j]);
+		System.out.println();
+		for (int i = 0; i < noOfVertices; i++) {
+			System.out.printf("%3d->", i);
+			for (int j = 0; j < noOfVertices; j++) {
+				System.out.printf("%3d", adjMatrix[i][j]);
 			}
 			System.out.println();
 		}
-
-		HashSet<Integer> visited1 = new HashSet<>();
-		dfsRecursion(1, visited1);
-		System.out.println();
-		System.out.println(1 + "->" + visited1);
-		System.out.println();
-//		HashSet<Integer> visited2 = new HashSet<>();
-//		bfsRecursion(1, visited2);
-//		visited2.remove(1);
-//		System.out.println(1 + "->" + visited2);
-//		System.out.println();
-
 	}
 
-	public static void dfsRecursion(int src, Set<Integer> visited) {
-		for (int neighbours = 0; neighbours < n; neighbours++) {
-			boolean hasEdge = graph[src][neighbours] == 1;
-			if (hasEdge && !visited.contains(neighbours)) {
-				visited.add(neighbours);
-				System.out.println(src+"->"+neighbours);
-				dfsRecursion(neighbours, visited);
+	@Override
+	public boolean addVertex(int vertex) {
+		if (vertex <= noOfVertices) {
+			return false;
+		} else {
+			int newNoOfVertices = vertex - noOfEdges;
+			int[][] tempGraph = new int[vertex][vertex];
+			for (int i = 0; i < noOfVertices; i++) {
+				for (int j = 0; j < noOfVertices; j++) {
+					tempGraph[i][j] = adjMatrix[i][j];
+				}
+			}
+			this.adjMatrix = tempGraph;
+			for (int i = 0; i < newNoOfVertices; i++) {
+				incrementVertices();
+			}
+			return true;
+		}
+	}
+
+	@Override
+	public boolean addEdge(int src, int dest, boolean directional) {
+		if (src >= noOfVertices && dest >= noOfVertices) {
+			return false;
+		} else {
+			this.adjMatrix[src][dest] = 1;
+			incrementEdges();
+			if (directional) {
+				this.adjMatrix[dest][src] = -1;
+			} else {
+				this.adjMatrix[dest][src] = 1;
+			}
+			return true;
+		}
+	}
+
+	@Override
+	public Set<Integer> dfsWithRecursion(int src) {
+		Set<Integer> visited = new LinkedHashSet<>();
+		dfsWithRecursion(src, visited);
+		return visited;
+	}
+
+	public void dfsWithRecursion(int src, Set<Integer> visited) {
+		visited.add(src);
+		for (int neighbour = 0; neighbour < noOfVertices; neighbour++) {
+			if (adjMatrix[src][neighbour] == 1 && !visited.contains(neighbour)) {
+				dfsWithRecursion(neighbour, visited);
 			}
 		}
 	}
-	
-// Need to revisit
-//	public static void bfsRecursion(int src, HashSet<Integer> visited) {
-//		visited.add(src);
-//		for (int neighbours = 0; neighbours < n; neighbours++) {
-//			boolean hasEdge = graph[src][neighbours] == 1;
-//			if (hasEdge && !visited.contains(neighbours)) {
-//				System.out.println(src+"->"+neighbours);
-//				bfsRecursion(neighbours, visited);
-//			}
-//		}
-//	}
+
+	@Override
+	public Set<Integer> dfs(int src) {
+		Set<Integer> visited = new LinkedHashSet<>();
+		Stack<Integer> stack = new Stack<>();
+		stack.add(src);
+		while (!stack.isEmpty()) {
+			int current = stack.pop();
+			visited.add(current);
+			for (int neighbour = 0; neighbour < noOfVertices; neighbour++) {
+				if (adjMatrix[current][neighbour] == 1 && !visited.contains(neighbour)) {
+					stack.add(neighbour);
+				}
+			}
+		}
+		return visited;
+	}
+
+	@Override
+	public Set<Integer> bfs(int src) {
+		Set<Integer> visited = new LinkedHashSet<>();
+		Queue<Integer> queue = new LinkedList<>();
+		queue.add(src);
+		while (!queue.isEmpty()) {
+			int current = queue.poll();
+			visited.add(current);
+			for (int neighbour = 0; neighbour < noOfVertices; neighbour++) {
+				if (adjMatrix[current][neighbour] == 1 && !visited.contains(neighbour)) {
+					queue.add(neighbour);
+				}
+			}
+		}
+		return visited;
+	}
+
+	@Override
+	public boolean isConnected() {
+		Set<Integer> visited = dfs(0);
+		return noOfVertices == visited.size();
+	}
+
+	@Override
+	public List<Set<Integer>> components() {
+		Set<Integer> visitedNodes = new HashSet<>();
+		List<Set<Integer>> componentSet = new LinkedList<>();
+		for (int i = 0; i < noOfVertices; i++) {
+			if (!visitedNodes.contains(i)) {
+				Set<Integer> visited = dfs(i);
+				visitedNodes.addAll(visited);
+				componentSet.add(visited);
+			}
+		}
+		return componentSet;
+	}
+
+	@Override
+	public boolean pathExists(int u, int v) {
+		if (u >= noOfVertices || v >= noOfVertices) {
+			return false;
+		}
+		return pathExistsDfsRecursion(u, v, new HashSet<>());
+	}
+
+	private boolean pathExistsDfsRecursion(int u, int v, Set<Integer> visited) {
+		if (u == v) {
+			return true;
+		}
+		visited.add(u);
+		for (int neighbours = 0; neighbours < noOfVertices; neighbours++) {
+			if (adjMatrix[u][neighbours] == 1 && !visited.contains(neighbours)
+					&& pathExistsDfsRecursion(neighbours, v, visited)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public List<Integer> path(int u, int v) {
+		List<Integer> pathList = new ArrayList<>();
+		if (u >= noOfVertices || v >= noOfVertices) {
+			return pathList;
+		}
+		List<Integer> path = new LinkedList<>();
+		pathDfsRecursion(u, v, new HashSet<>(), path);
+		return path;
+	}
+
+	private boolean pathDfsRecursion(int u, int v, Set<Integer> visited, List<Integer> path) {
+		visited.add(u);
+		path.add(u);
+		if (u == v) {
+			return true;
+		}
+		for (int neighbours = 0; neighbours < noOfVertices; neighbours++) {
+			if (adjMatrix[u][neighbours] == 1 && !visited.contains(neighbours)
+					&& pathDfsRecursion(neighbours, v, visited, path)) {
+				return true;
+			}
+		}
+		path.remove(Integer.valueOf(u));
+		return false;
+	}
 
 }
