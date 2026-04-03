@@ -1,15 +1,25 @@
-package com.dsa.graph;
+package com.dsa.graph.test;
 
-public class TestGraphAdjMatrix {
+import com.dsa.graph.Graph;
+import com.dsa.graph.GraphAdjList;
+import com.dsa.graph.GraphAdjMatrix;
+
+public class TestGraphTraversal {
 
 	public static void main(String[] args) {
 		// Input
 		int n = 11;
 		int[][] edges = { { 0, 1 }, { 0, 2 }, { 1, 3 }, { 2, 3 }, { 3, 4 }, { 5, 6 }, { 5, 7 }, { 6, 7 }, { 7, 8 },
 				{ 8, 9 } };
-		Graph graph = new GraphAdjMatrix(n);
+		cycleTest(n, edges, new GraphAdjList(n));
+		cycleTest(n, edges, new GraphAdjList(n, true));
+		cycleTest(n, edges, new GraphAdjMatrix(n));
+		cycleTest(n, edges, new GraphAdjMatrix(n, true));
+	}
+
+	private static void cycleTest(int n, int[][] edges, Graph graph) {
 		for (int[] edge : edges) {
-			graph.addEdge(edge[0], edge[1], true);
+			graph.addEdge(edge[0], edge[1]);
 		}
 
 		// Graph Print
@@ -17,7 +27,7 @@ public class TestGraphAdjMatrix {
 
 		/*
 		 * Connected Components 1) isConnected() → false Reason: 3 components exist. 2)
-		 * countComponents() → 3 3)
+		 * countComponents() → 3
 		 */
 		System.out.println("Graph is connected : " + graph.isConnected());
 		System.out.println("Graph components : %s".formatted(graph.components().toString()));
@@ -26,9 +36,9 @@ public class TestGraphAdjMatrix {
 		 * Traversal 3) DFS Traversal 4) BFS Traversal
 		 */
 		for (int u = 0; u < graph.getNoOfVertices(); u++) {
-			System.out.println(graph.dfsWithRecursion(u));
-			System.out.println(graph.dfs(u));
-			System.out.println(graph.bfs(u));
+			System.out.println("DFS Recursion for " + u + " : " + graph.dfsWithRecursion(u));
+			System.out.println("DFS for " + u + " : " + graph.dfs(u));
+			System.out.println("BFS for " + u + " : " + graph.bfs(u));
 			System.out.println("----------------");
 		}
 

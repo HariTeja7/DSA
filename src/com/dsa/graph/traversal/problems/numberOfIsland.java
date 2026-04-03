@@ -1,4 +1,4 @@
-package com.dsa.graph;
+package com.dsa.graph.traversal.problems;
 
 class numberOfIslands {
 	// https://leetcode.com/problems/number-of-islands/
